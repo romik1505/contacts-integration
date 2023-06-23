@@ -17,25 +17,24 @@ const (
 
 func (a Client) ListContacts(ctx context.Context, account model.Account, params model.ContactQueryParams) (model.ContactResponse, error) {
 	v, _ := query.Values(params)
-	if !account.AccessToken.Valid || account.AccessToken.String == "" {
+	if account.AccessToken == "" {
 		return model.ContactResponse{}, fmt.Errorf("access_token not set")
 	}
-	if !account.Subdomain.Valid || account.Subdomain.String == "" {
+	if account.Subdomain == "" {
 		return model.ContactResponse{}, fmt.Errorf("subdomain not set")
 	}
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(contactsURLMask+"?"+v.Encode(), account.Subdomain.String), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(contactsURLMask+"?"+v.Encode(), account.Subdomain), nil)
 	if err != nil {
 		return model.ContactResponse{}, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+account.AccessToken.String)
+	req.Header.Add("Authorization", "Bearer "+account.AccessToken)
 
 	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		return model.ContactResponse{}, err
 	}
-	log.Println(resp.StatusCode)
 
 	if resp.StatusCode < 200 || resp.StatusCode > 204 {
 		var amoErr errors.AmoCRMError

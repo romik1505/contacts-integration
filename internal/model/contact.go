@@ -1,6 +1,32 @@
 package model
 
+import (
+	"gorm.io/gorm"
+)
+
 type Contact struct {
+	gorm.Model
+
+	ID        uint64
+	AccountID uint64
+	Name      string `gorm:"size:255"`
+	Email     string `gorm:"size:255"`
+	Type      string `gorm:"size:255"`
+	Sync      bool
+
+	CreatedAt uint64 `gorm:"autoCreateTime"`
+	UpdatedAt uint64 `gorm:"autoUpdateTime"`
+}
+
+type ListContactsFilter struct {
+	AccountID uint64
+	Page      int
+	Limit     int
+	Type      string
+	Sync      *bool
+}
+
+type AmoContact struct {
 	ID                 int         `json:"id"`
 	Name               string      `json:"name"`
 	FirstName          string      `json:"first_name"`
@@ -52,7 +78,7 @@ type ContactResponse struct {
 		} `json:"self"`
 	} `json:"_links"`
 	Embedded struct {
-		Contacts []Contact `json:"contacts"`
+		Contacts []AmoContact `json:"contacts"`
 	} `json:"_embedded"`
 }
 

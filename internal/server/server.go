@@ -7,7 +7,7 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"week3_docker/internal/service"
+	contact_service "week3_docker/internal/service/contact"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -26,10 +26,10 @@ var (
 )
 
 type Server struct {
-	cs *service.ContactService
+	cs *contact_service.Service
 }
 
-func NewServer(cs *service.ContactService) Server {
+func NewServer(cs *contact_service.Service) Server {
 	return Server{
 		cs: cs,
 	}
@@ -60,7 +60,7 @@ func SwaggerMux(ctx context.Context) *http.ServeMux {
 	return mx
 }
 
-func RunGRPCServer(ctx context.Context, cs *service.ContactService) {
+func RunGRPCServer(ctx context.Context, cs *contact_service.Service) {
 	lis, err := net.Listen("tcp", *grpcPort)
 	if err != nil {
 		log.Fatalf("error start grpc server %v", err)

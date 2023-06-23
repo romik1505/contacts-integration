@@ -1,4 +1,4 @@
-package service
+package contact
 
 import (
 	"context"
@@ -7,15 +7,18 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"week3_docker/internal/model"
-	"week3_docker/internal/store"
 	contact "week3_docker/pkg/api/contact_service"
 )
 
-func (cs ContactService) AuthIntegration(ctx context.Context, request *contact.AuthIntegrationRequest) (*emptypb.Empty, error) {
+func (cs Service) AuthIntegration(ctx context.Context, request *contact.AuthIntegrationRequest) (*emptypb.Empty, error) {
 	account := &model.Account{
-		Subdomain:     store.NewNullString(request.GetReferer()),
-		AuthCode:      store.NewNullString(request.GetCode()),
-		IntegrationID: store.NewNullString(request.GetClientId()),
+		Subdomain: request.GetReferer(),
+		AuthCode:  request.GetCode(),
+		Integrations: []model.Integration{
+			{
+				OuterID: request.GetClientId(),
+			},
+		},
 	}
 
 	err := cs.ar.CreateAccount(ctx, account)

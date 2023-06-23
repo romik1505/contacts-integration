@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"week3_docker/internal/client/amo"
+	"week3_docker/internal/client/unisender"
 	"week3_docker/internal/repository/account"
+	contact_repository "week3_docker/internal/repository/contact"
+	"week3_docker/internal/repository/integration"
 	"week3_docker/internal/server"
-	"week3_docker/internal/service"
+	"week3_docker/internal/service/contact"
 	"week3_docker/internal/store"
-	_ "week3_docker/migrations"
 )
 
 func main() {
@@ -16,9 +18,12 @@ func main() {
 		log.Fatalf("db connection failed %v", err)
 	}
 
-	rep := account.NewAccountRepository(st)
+	ar := account.NewAccountRepository(st)
+	cr := contact_repository.NewRepository(st)
+	ir := integration.NewRepository(st)
 	amo := amo.NewAmoClient()
-	cs := service.NewContactService(amo, rep)
+	uni := unisender.NewClient()
+	cs := contact.NewService(amo, uni, ar, cr, ir)
 	go cs.AutoRefreshTokens()
 
 	s := server.NewServer(cs)

@@ -5,42 +5,44 @@ import (
 	contact "week3_docker/pkg/api/contact_service"
 )
 
-func ConvertContacts(inp []model.Contact) []*contact.Contact {
-	res := make([]*contact.Contact, 0, len(inp))
-	for _, v := range inp {
-		customFields := make([]*contact.CustomFieldsValue, len(v.CustomFieldsValues))
-		for j, field := range v.CustomFieldsValues {
-			customFieldsValues := make([]*contact.CustomFieldsValue_Values, len(field.Values))
-			for k, val := range field.Values {
-				customFieldsValues[k] = &contact.CustomFieldsValue_Values{
-					Value:    val.Value,
-					EnumId:   uint64(val.EnumID),
-					EnumCode: val.EnumCode,
+func ConvertAmoContacts(inp []*contact.AmoContact, accountID uint64, types string) []*model.Contact {
+	res := make([]*model.Contact, 0, len(inp))
+	for _, contact := range inp {
+		for _, fields := range contact.GetCustomFields() {
+			if fields.GetCode() == "EMAIL" {
+				for _, val := range fields.GetValues() {
+					email := val.GetValue()
+					res = append(res, &model.Contact{
+						AccountID: accountID,
+						Name:      contact.GetName(),
+						Email:     email,
+						Type:      types,
+						Sync:      false,
+					})
 				}
 			}
-			customFields[j] = &contact.CustomFieldsValue{
-				FieldId:   uint64(field.FieldID),
-				FieldName: field.FieldName,
-				FieldCode: field.FieldCode,
-				FieldType: field.FieldType,
-				Values:    customFieldsValues,
-			}
 		}
-		res = append(res, &contact.Contact{
-			Id:                uint64(v.ID),
-			Name:              v.Name,
-			FirstName:         v.FirstName,
-			LastName:          v.LastName,
-			ResponsibleUserId: uint64(v.ResponsibleUserID),
-			CreatedAt:         uint64(v.CreatedAt),
-			CreatedBy:         uint64(v.CreatedBy),
-			UpdatedAt:         uint64(v.UpdatedAt),
-			UpdatedBy:         uint64(v.UpdatedBy),
-			IsDeleted:         v.IsDeleted,
-			IsUnsorted:        v.IsUnsorted,
-			CustomFieldValues: customFields,
-			AccountId:         uint64(v.AccountID),
-		})
 	}
 	return res
+}
+
+func ConvertContacts(contacts []model.Contact) []*contact.Contact {
+	res := make([]*contact.Contact, len(contacts))
+	for i, v := range contacts {
+		res[i] = ConvertContact(v)
+	}
+	return res
+}
+
+func ConvertContact(c model.Contact) *contact.Contact {
+	return &contact.Contact{
+		Id:        c.ID,
+		AccountId: c.AccountID,
+		Name:      c.Name,
+		Email:     c.Email,
+		Type:      c.Type,
+		Sync:      c.Sync,
+		CreatedAt: c.CreatedAt,
+		UpdatedAt: c.UpdatedAt,
+	}
 }

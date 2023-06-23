@@ -20,8 +20,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ContactService_AuthIntegration_FullMethodName = "/contact_service.ContactService/AuthIntegration"
-	ContactService_ListContacts_FullMethodName    = "/contact_service.ContactService/ListContacts"
+	ContactService_AuthIntegration_FullMethodName         = "/contact_service.ContactService/AuthIntegration"
+	ContactService_ListContacts_FullMethodName            = "/contact_service.ContactService/ListContacts"
+	ContactService_ListAccounts_FullMethodName            = "/contact_service.ContactService/ListAccounts"
+	ContactService_ListAccountIntegrations_FullMethodName = "/contact_service.ContactService/ListAccountIntegrations"
+	ContactService_PrimaryContactsSync_FullMethodName     = "/contact_service.ContactService/PrimaryContactsSync"
+	ContactService_GetAccount_FullMethodName              = "/contact_service.ContactService/GetAccount"
+	ContactService_ContactActionsHook_FullMethodName      = "/contact_service.ContactService/ContactActionsHook"
+	ContactService_UnsubAccount_FullMethodName            = "/contact_service.ContactService/UnsubAccount"
 )
 
 // ContactServiceClient is the client API for ContactService service.
@@ -29,7 +35,20 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ContactServiceClient interface {
 	AuthIntegration(ctx context.Context, in *AuthIntegrationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Список контактов в amoCRM
 	ListContacts(ctx context.Context, in *ListContactsRequest, opts ...grpc.CallOption) (*ListContactsResponse, error)
+	// Список учетных записей
+	ListAccounts(ctx context.Context, in *ListAccountsRequest, opts ...grpc.CallOption) (*ListAccountsResponse, error)
+	// // Список интеграций аккаунта
+	ListAccountIntegrations(ctx context.Context, in *ListAccountIntegrationsRequest, opts ...grpc.CallOption) (*ListAccountIntegrationsResponse, error)
+	// // Первичная интеграция контактов
+	PrimaryContactsSync(ctx context.Context, in *PrimaryContactSyncRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// // Информация об аккаунте
+	GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*GetAccountResponse, error)
+	// // Хук изменений контактов
+	ContactActionsHook(ctx context.Context, in *ContactActionsHookRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// // Отписка учетной записи
+	UnsubAccount(ctx context.Context, in *UnsubAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type contactServiceClient struct {
@@ -58,12 +77,79 @@ func (c *contactServiceClient) ListContacts(ctx context.Context, in *ListContact
 	return out, nil
 }
 
+func (c *contactServiceClient) ListAccounts(ctx context.Context, in *ListAccountsRequest, opts ...grpc.CallOption) (*ListAccountsResponse, error) {
+	out := new(ListAccountsResponse)
+	err := c.cc.Invoke(ctx, ContactService_ListAccounts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contactServiceClient) ListAccountIntegrations(ctx context.Context, in *ListAccountIntegrationsRequest, opts ...grpc.CallOption) (*ListAccountIntegrationsResponse, error) {
+	out := new(ListAccountIntegrationsResponse)
+	err := c.cc.Invoke(ctx, ContactService_ListAccountIntegrations_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contactServiceClient) PrimaryContactsSync(ctx context.Context, in *PrimaryContactSyncRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ContactService_PrimaryContactsSync_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contactServiceClient) GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*GetAccountResponse, error) {
+	out := new(GetAccountResponse)
+	err := c.cc.Invoke(ctx, ContactService_GetAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contactServiceClient) ContactActionsHook(ctx context.Context, in *ContactActionsHookRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ContactService_ContactActionsHook_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contactServiceClient) UnsubAccount(ctx context.Context, in *UnsubAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ContactService_UnsubAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContactServiceServer is the server API for ContactService service.
 // All implementations should embed UnimplementedContactServiceServer
 // for forward compatibility
 type ContactServiceServer interface {
 	AuthIntegration(context.Context, *AuthIntegrationRequest) (*emptypb.Empty, error)
+	// Список контактов в amoCRM
 	ListContacts(context.Context, *ListContactsRequest) (*ListContactsResponse, error)
+	// Список учетных записей
+	ListAccounts(context.Context, *ListAccountsRequest) (*ListAccountsResponse, error)
+	// // Список интеграций аккаунта
+	ListAccountIntegrations(context.Context, *ListAccountIntegrationsRequest) (*ListAccountIntegrationsResponse, error)
+	// // Первичная интеграция контактов
+	PrimaryContactsSync(context.Context, *PrimaryContactSyncRequest) (*emptypb.Empty, error)
+	// // Информация об аккаунте
+	GetAccount(context.Context, *GetAccountRequest) (*GetAccountResponse, error)
+	// // Хук изменений контактов
+	ContactActionsHook(context.Context, *ContactActionsHookRequest) (*emptypb.Empty, error)
+	// // Отписка учетной записи
+	UnsubAccount(context.Context, *UnsubAccountRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedContactServiceServer should be embedded to have forward compatible implementations.
@@ -75,6 +161,24 @@ func (UnimplementedContactServiceServer) AuthIntegration(context.Context, *AuthI
 }
 func (UnimplementedContactServiceServer) ListContacts(context.Context, *ListContactsRequest) (*ListContactsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListContacts not implemented")
+}
+func (UnimplementedContactServiceServer) ListAccounts(context.Context, *ListAccountsRequest) (*ListAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAccounts not implemented")
+}
+func (UnimplementedContactServiceServer) ListAccountIntegrations(context.Context, *ListAccountIntegrationsRequest) (*ListAccountIntegrationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAccountIntegrations not implemented")
+}
+func (UnimplementedContactServiceServer) PrimaryContactsSync(context.Context, *PrimaryContactSyncRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PrimaryContactsSync not implemented")
+}
+func (UnimplementedContactServiceServer) GetAccount(context.Context, *GetAccountRequest) (*GetAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAccount not implemented")
+}
+func (UnimplementedContactServiceServer) ContactActionsHook(context.Context, *ContactActionsHookRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ContactActionsHook not implemented")
+}
+func (UnimplementedContactServiceServer) UnsubAccount(context.Context, *UnsubAccountRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnsubAccount not implemented")
 }
 
 // UnsafeContactServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -124,6 +228,114 @@ func _ContactService_ListContacts_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ContactService_ListAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).ListAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_ListAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).ListAccounts(ctx, req.(*ListAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContactService_ListAccountIntegrations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAccountIntegrationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).ListAccountIntegrations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_ListAccountIntegrations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).ListAccountIntegrations(ctx, req.(*ListAccountIntegrationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContactService_PrimaryContactsSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrimaryContactSyncRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).PrimaryContactsSync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_PrimaryContactsSync_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).PrimaryContactsSync(ctx, req.(*PrimaryContactSyncRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContactService_GetAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).GetAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_GetAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).GetAccount(ctx, req.(*GetAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContactService_ContactActionsHook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContactActionsHookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).ContactActionsHook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_ContactActionsHook_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).ContactActionsHook(ctx, req.(*ContactActionsHookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContactService_UnsubAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsubAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContactServiceServer).UnsubAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContactService_UnsubAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContactServiceServer).UnsubAccount(ctx, req.(*UnsubAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ContactService_ServiceDesc is the grpc.ServiceDesc for ContactService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -138,6 +350,30 @@ var ContactService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListContacts",
 			Handler:    _ContactService_ListContacts_Handler,
+		},
+		{
+			MethodName: "ListAccounts",
+			Handler:    _ContactService_ListAccounts_Handler,
+		},
+		{
+			MethodName: "ListAccountIntegrations",
+			Handler:    _ContactService_ListAccountIntegrations_Handler,
+		},
+		{
+			MethodName: "PrimaryContactsSync",
+			Handler:    _ContactService_PrimaryContactsSync_Handler,
+		},
+		{
+			MethodName: "GetAccount",
+			Handler:    _ContactService_GetAccount_Handler,
+		},
+		{
+			MethodName: "ContactActionsHook",
+			Handler:    _ContactService_ContactActionsHook_Handler,
+		},
+		{
+			MethodName: "UnsubAccount",
+			Handler:    _ContactService_UnsubAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
