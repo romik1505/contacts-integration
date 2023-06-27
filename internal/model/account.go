@@ -1,21 +1,30 @@
 package model
 
-import "database/sql"
+import (
+	"gorm.io/gorm"
+)
 
 type Account struct {
-	ID            sql.NullInt64  `db:"id"`
-	Subdomain     sql.NullString `db:"subdomain"`
-	AuthCode      sql.NullString `db:"auth_code"`
-	IntegrationID sql.NullString `db:"integration_id"`
-	AccessToken   sql.NullString `db:"access_token"`
-	RefreshToken  sql.NullString `db:"refresh_token"`
-	Expires       sql.NullInt64  `db:"expires"`
-	CreatedAt     sql.NullTime   `db:"created_at"`
-	UpdatedAt     sql.NullTime   `db:"updated_at"`
+	gorm.Model
+	Contacts     []Contact
+	Integrations []Integration
+
+	ID           uint64
+	Subdomain    string `gorm:"size:255"`
+	AuthCode     string
+	AccessToken  string
+	RefreshToken string
+	Expires      uint64
+	UnisenderKey string `gorm:"size:255"`
+
+	CreatedAt uint64 `gorm:"autoCreateTime"`
+	UpdatedAt uint64 `gorm:"autoUpdateTime"`
 }
 
 type ListAccountFilter struct {
-	Page        int
-	Limit       int
-	NeedRefresh bool
+	Page             int
+	Limit            int
+	NeedRefresh      bool
+	AmoAuthorized    *bool
+	JoinIntegrations bool
 }

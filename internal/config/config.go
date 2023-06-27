@@ -11,7 +11,7 @@ import (
 type ConfigFile struct {
 	DBConfig     DBConfig
 	APISecretKey string
-	RedirectURI  string
+	HostUrl      string
 }
 
 type DBConfig struct {
@@ -24,7 +24,7 @@ type DBConfig struct {
 }
 
 func (d DBConfig) ConnectionString() string {
-	return fmt.Sprintf(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+	return fmt.Sprintf(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		d.User,
 		d.Password,
 		d.Host,
@@ -107,7 +107,7 @@ func NewConfig() (ConfigFile, error) {
 		return ConfigFile{}, err
 	}
 
-	redirectUri, err := GetEnv("REDIRECT_URI")
+	hostUrl, err := GetEnv("HOST_URL")
 	if err != nil {
 		return ConfigFile{}, err
 	}
@@ -115,7 +115,7 @@ func NewConfig() (ConfigFile, error) {
 	return ConfigFile{
 		DBConfig:     dbConfig,
 		APISecretKey: apiSecret,
-		RedirectURI:  redirectUri,
+		HostUrl:      hostUrl,
 	}, nil
 }
 

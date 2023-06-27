@@ -19,7 +19,7 @@ func (a Client) AccessToken(ctx context.Context, account model.Account, request 
 		return model.AuthTokenPair{}, err
 	}
 
-	amoURL := fmt.Sprintf(authURLMask, account.Subdomain.String)
+	amoURL := fmt.Sprintf(authURLMask, account.Subdomain)
 	resp, err := a.httpClient.Post(amoURL, "application/json", bytes.NewBuffer(obj))
 	if err != nil {
 		return model.AuthTokenPair{}, err

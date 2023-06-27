@@ -12,9 +12,47 @@ service ContactService {
     option(google.api.http) = { get: "/api/oauth/sign_in" };
   }
 
+  // Список контактов в amoCRM
   rpc ListContacts(ListContactsRequest) returns (ListContactsResponse) {
     option(google.api.http) = { get: "/api/account/{id}/contacts" };
   }
+
+  // Список учетных записей
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse) {
+    option(google.api.http) = { get: "/api/accounts" };
+  }
+
+//  // Список интеграций аккаунта
+  rpc ListAccountIntegrations(ListAccountIntegrationsRequest) returns (ListAccountIntegrationsResponse) {
+    option(google.api.http) = { get: "/api/account/{id}/integrations" };
+  }
+
+//  // Первичная интеграция контактов
+  rpc PrimaryContactsSync(PrimaryContactSyncRequest) returns (google.protobuf.Empty) {
+    option(google.api.http) = {
+      post: "/api/account/{id}/contacts/sync"
+      body :"*"
+    };
+  }
+
+//  // Информация об аккаунте
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse) {
+    option(google.api.http) = { get: "/api/account/{id}" };
+  }
+//
+//  // Хук изменений контактов
+  rpc ContactActionsHook(ContactActionsHookRequest) returns (google.protobuf.Empty) {
+    option(google.api.http) = {
+      post: "/api/account/{id}/contacts/hook"
+      body :"*"
+    };
+  }
+
+//  // Отписка учетной записи
+  rpc UnsubAccount(UnsubAccountRequest) returns (google.protobuf.Empty) {
+    option(google.api.http) = { get: "/api/account/{id}/contacts/hook/unsub" };
+  }
+
 }
 
 message AuthIntegrationRequest {
@@ -29,6 +67,8 @@ message ListContactsRequest {
   uint64 id = 1;
   int32 page = 2;
   int32 limit = 3;
+  string type = 4;
+  optional bool sync = 5;
 }
 
 message ListContactsResponse {
@@ -37,29 +77,106 @@ message ListContactsResponse {
 
 message Contact {
   uint64 id = 1;
-  string name = 2;
-  string first_name = 3;
-  string last_name = 4;
-  uint64 responsible_user_id = 5;
-  uint64 created_at = 6;
-  uint64 created_by = 7;
+  uint64 account_id = 2;
+  string name = 3;
+  string email = 4;
+  string type = 5;
+  bool sync = 6;
+  uint64 created_at = 7;
   uint64 updated_at = 8;
-  uint64 updated_by = 9;
-  bool is_deleted = 10;
-  bool is_unsorted = 11;
-  repeated CustomFieldsValue custom_field_values = 12;
-  uint64 account_id = 13;
 }
 
-message CustomFieldsValue {
-  uint64 field_id = 1;
-  string field_name = 2;
-  string field_code = 3;
-  string field_type = 4;
-  repeated Values values = 5;
+message ListAccountsRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  optional bool amo_auth = 3;
+}
+
+message ListAccountsResponse {
+  repeated Account items = 1;
+}
+
+message Account {
+  uint64 id = 1;
+  string subdomain = 2;
+  bool amo_auth = 3;
+  bool unisender_connected = 4;
+  uint64 created_at = 5;
+  uint64 updated_at = 6;
+}
+
+message ListAccountIntegrationsRequest {
+  int32 id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message ListAccountIntegrationsResponse {
+  repeated AccountIntegration items = 1;
+}
+
+message AccountIntegration {
+  uint64 id = 1;
+  string outer_id = 2;
+  uint64 created_at = 3;
+  uint64 updated_at = 4;
+}
+
+message PrimaryContactSyncRequest {
+  uint64 id = 1;
+  string unisender_key = 2;
+}
+
+message GetAccountRequest {
+  uint64 id = 1;
+}
+
+message GetAccountResponse {
+  Account account = 1;
+}
+
+message ContactActionsHookRequest {
+  uint64 id = 1;
+
+  message Embedded {
+    repeated AmoContact add = 1;
+    repeated AmoContact update = 2;
+    repeated AmoContact delete =  3;
+  }
+  Embedded contacts = 2;
+}
+
+message AmoContact {
+  uint64 id = 1;
+  string name = 2;
+  uint64 responsible_user_id = 3;
+  uint64 date_create = 4;
+  uint64 last_modified = 5;
+  uint64 created_user_id = 6;
+  uint64 modified_user_id = 7;
+  string company_name = 8;
+  uint64 linked_company_id = 9;
+  uint64 account_id = 10;
+  repeated Custom_fields custom_fields = 11;
+  uint64 created_at = 12;
+  uint64 updated_at = 13;
+  string type = 14;
+
   message Values {
     string value = 1;
-    uint64 enum_id = 2;
-    string enum_code = 3;
+    string enum = 2;
+    string code = 3;
   }
+
+  message Custom_fields {
+    uint64 id = 1;
+    string name = 2;
+    repeated Values values = 3;
+    string code = 4;
+  }
+}
+
+
+message UnsubAccountRequest {
+  uint64 id = 1;
 }

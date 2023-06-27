@@ -1,47 +1,29 @@
 package store
 
 import (
-	"fmt"
-	sq "github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
-	"github.com/pressly/goose/v3"
-	"os"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"week3_docker/internal/config"
+	"week3_docker/internal/model"
 )
 
 type Store struct {
-	DB *sqlx.DB
+	DB *gorm.DB
 }
-
-//var embedMigrations embed.FS
 
 func NewStore() (Store, error) {
 	dbConf := config.Config.DBConfig
 	conString := dbConf.ConnectionString()
-	con, err := sqlx.Open(dbConf.Driver, conString)
 
+	db, err := gorm.Open(mysql.Open(conString), &gorm.Config{})
 	if err != nil {
 		return Store{}, err
 	}
 
-	if err := con.Ping(); err != nil {
-		return Store{}, err
-	}
+	db.AutoMigrate(&model.Account{}, &model.Contact{}, &model.Integration{})
 
-	//goose.SetBaseFS(embedMigrations)
-	if err := goose.SetDialect("mysql"); err != nil {
-		return Store{}, fmt.Errorf("goose SetDialect: %v", err)
-	}
-
-	path, err := os.Getwd()
-	if err := goose.Up(con.DB, path+"/migrations"); err != nil {
-		return Store{}, fmt.Errorf("goose migrations: %v", err)
-	}
 	return Store{
-		DB: con,
+		DB: db,
 	}, nil
-}
-func (s Store) Builder() sq.StatementBuilderType {
-	return sq.StatementBuilder.RunWith(s.DB)
 }
