@@ -28,21 +28,34 @@ services:
     networks:
       - fullstack
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin_container
-    depends_on:
-      - fullstack-mysql
-    environment:
-      - PMA_HOST=fullstack-mysql
-      - PMA_USER=${DB_USER}
-      - PMA_PORT=${DB_PORT}
-      - PMA_PASSWORD=${DB_PASSWORD}
+#  phpmyadmin:
+#    image: phpmyadmin/phpmyadmin
+#    container_name: phpmyadmin_container
+#    depends_on:
+#      - fullstack-mysql
+#    environment:
+#      - PMA_HOST=fullstack-mysql
+#      - PMA_USER=${DB_USER}
+#      - PMA_PORT=${DB_PORT}
+#      - PMA_PASSWORD=${DB_PASSWORD}
+#    ports:
+#      - 9090:80
+#    restart: always
+#    networks:
+#      - fullstack
+
+  beanstalkd:
+    container_name: ddev-beanstalkd
+    image: schickling/beanstalkd
+    restart: "no"
+    expose:
+      - 11300
     ports:
-      - 9090:80
-    restart: always
-    networks:
-      - fullstack
+      - 11300:11300
+    labels:
+      com.ddev.site-name: "sitename"
+#    volumes:
+#      - ".:/mnt/ddev_config"
 
 
 volumes:

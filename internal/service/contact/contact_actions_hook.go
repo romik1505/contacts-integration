@@ -2,38 +2,54 @@ package contact
 
 import (
 	"context"
-	"google.golang.org/protobuf/types/known/emptypb"
-	"log"
+	"fmt"
 	"week3_docker/internal/mapper"
-	contact "week3_docker/pkg/api/contact_service"
+	"week3_docker/internal/model"
+	"week3_docker/internal/queue"
+	"week3_docker/internal/schemas"
 )
 
-func (s Service) ContactActionsHook(ctx context.Context, req *contact.ContactActionsHookRequest) (*emptypb.Empty, error) {
-	log.Println(req.GetContacts().GetAdd())
-
-	addContacts := mapper.ConvertAmoContacts(req.GetContacts().GetAdd(), req.GetId(), "add")
-	if len(addContacts) > 0 {
-		_, err1 := s.cr.InsertContacts(ctx, addContacts)
-		if err1 != nil {
-			return nil, err1
-		}
+func (s Service) ContactActionsHook(ctx context.Context, req schemas.ContactActionsHookRequest) error {
+	account, err := s.ar.GetAccount(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+	if account.UnisenderKey == "" || account.UnisenderListID == 0 {
+		return fmt.Errorf("require primary sync again")
 	}
 
-	updateContacts := mapper.ConvertAmoContacts(req.GetContacts().GetUpdate(), req.GetId(), "update")
-	if len(updateContacts) > 0 {
-		_, err2 := s.cr.InsertContacts(ctx, updateContacts)
-		if err2 != nil {
-			return nil, err2
-		}
+	addContacts, addIDs := mapper.ConvertAmoContactsWithIDs(req.Contacts.Add, req.ID, "add")
+	updateContacts, updateIDs := mapper.ConvertAmoContactsWithIDs(req.Contacts.Update, req.ID, "update")
+	deleteIDs := mapper.AmoContactsIDs(req.Contacts.Delete)
+
+	taskData := model.ContactActionsTask{
+		AccountID:       account.ID,
+		UnisenderKey:    account.UnisenderKey,
+		UnisenderListID: account.UnisenderListID,
 	}
 
-	deleteContacts := mapper.ConvertAmoContacts(req.GetContacts().GetDelete(), req.GetId(), "delete")
-	if len(deleteContacts) > 0 {
-		_, err3 := s.cr.InsertContacts(ctx, deleteContacts)
-		if err3 != nil {
-			return nil, err3
-		}
+	taskData.Contacts = addContacts
+	taskData.IDs = addIDs
+	taskData.Type = "add"
+	err = s.queue.PushContactTask(ctx, taskData, queue.TaskTypeAddContacts)
+	if err != nil {
+		return err
 	}
-	log.Printf("ContactHook: add=%d, update=%d, delete=%d", len(addContacts), len(updateContacts), len(deleteContacts))
-	return new(emptypb.Empty), nil
+
+	taskData.Contacts = updateContacts
+	taskData.IDs = updateIDs
+	taskData.Type = "update"
+	err = s.queue.PushContactTask(ctx, taskData, queue.TaskTypeUpdateContacts)
+	if err != nil {
+		return err
+	}
+
+	taskData.IDs = deleteIDs
+	taskData.Type = "delete"
+	err = s.queue.PushContactTask(ctx, taskData, queue.TaskTypeDeleteContacts)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

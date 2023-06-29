@@ -14,9 +14,9 @@ const (
 )
 
 type IUnisenderClient interface {
-	GetLists(ctx context.Context, apiKey string) (GetListsResponse, error)
 	CreateList(ctx context.Context, apiKey string, listTitle string) (uint64, error)
 	DeleteList(ctx context.Context, apiKey string, listID uint64) error
+	GetLists(ctx context.Context, apiKey string) (GetListsResponse, error)
 	ImportContacts(ctx context.Context, req ImportContactsRequest) (ImportContactsResponse, error)
 }
 

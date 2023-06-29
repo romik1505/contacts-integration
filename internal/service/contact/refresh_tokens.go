@@ -7,10 +7,10 @@ import (
 	"time"
 	"week3_docker/internal/client/amo"
 	"week3_docker/internal/config"
-	"week3_docker/internal/model"
+	account_repo "week3_docker/internal/repository/account"
 )
 
-func (cs Service) AutoRefreshTokens() {
+func (cs Service) AutoRefreshTokens(ctx context.Context) {
 	log.Println("AutoRefreshTokens started")
 	defer log.Println("AutoRefreshTokens finished")
 	for {
@@ -23,7 +23,7 @@ func (cs Service) AutoRefreshTokens() {
 }
 
 func (cs Service) refreshTokens(ctx context.Context) error {
-	accounts, err := cs.ar.ListAccounts(ctx, model.ListAccountFilter{
+	accounts, err := cs.ar.ListAccounts(ctx, account_repo.ListAccountFilter{
 		Page:             1,
 		Limit:            100,
 		NeedRefresh:      true,
@@ -37,11 +37,11 @@ func (cs Service) refreshTokens(ctx context.Context) error {
 		ctx := context.Background()
 
 		if len(account.Integrations) == 0 {
-			log.Printf("account id=%s without integration", account.ID)
+			log.Printf("account id=%d without integration", account.ID)
 			continue
 		}
 
-		newTokens, err := cs.amoClient.AccessToken(ctx, account, model.AuthRequest{
+		newTokens, err := cs.amoClient.AccessToken(ctx, account.Subdomain, amo.AuthRequest{
 			ClientID:     account.Integrations[0].OuterID,
 			ClientSecret: config.Config.APISecretKey,
 			GrantType:    amo.GrantTypeRefresh,
@@ -49,7 +49,7 @@ func (cs Service) refreshTokens(ctx context.Context) error {
 			RedirectURI:  fmt.Sprintf(redirectUrlMask, config.Config.HostUrl),
 		})
 		if err != nil {
-			log.Printf("RefreshTokens: error refresh token for account %d: %v", account.ID, err)
+			log.Printf("RefreshTokens: error refresh token for account %d: %v", account.ID, err.Error())
 			continue
 		}
 		account.AccessToken = newTokens.AccessToken
@@ -57,7 +57,7 @@ func (cs Service) refreshTokens(ctx context.Context) error {
 		account.Expires = uint64(time.Now().Unix() + newTokens.ExpiresIn)
 		err = cs.ar.UpdateAccount(ctx, &account)
 		if err != nil {
-			log.Printf("RefreshTokens: error update tokens for account %s: %v", account.ID, err)
+			log.Printf("RefreshTokens: error update tokens for account %d: %v", account.ID, err)
 		}
 	}
 	return nil

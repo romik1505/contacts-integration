@@ -106,55 +106,9 @@
         ]
       }
     },
-    "/api/account/{id}/contacts/hook": {
-      "post": {
-        "summary": "// Хук изменений контактов",
-        "operationId": "ContactService_ContactActionsHook",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "type": "object",
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "contacts": {
-                  "$ref": "#/definitions/ContactActionsHookRequestEmbedded"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "ContactService"
-        ]
-      }
-    },
     "/api/account/{id}/contacts/hook/unsub": {
       "get": {
-        "summary": "// Отписка учетной записи",
+        "summary": "Отписка учетной записи",
         "operationId": "ContactService_UnsubAccount",
         "responses": {
           "200": {
@@ -185,55 +139,9 @@
         ]
       }
     },
-    "/api/account/{id}/contacts/sync": {
-      "post": {
-        "summary": "// Первичная интеграция контактов",
-        "operationId": "ContactService_PrimaryContactsSync",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "type": "object",
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "unisender_key": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "ContactService"
-        ]
-      }
-    },
     "/api/account/{id}/integrations": {
       "get": {
-        "summary": "// Список интеграций аккаунта",
+        "summary": "Список интеграций аккаунта",
         "operationId": "ContactService_ListAccountIntegrations",
         "responses": {
           "200": {
@@ -324,6 +232,7 @@
     },
     "/api/oauth/sign_in": {
       "get": {
+        "summary": "Добавление виджета",
         "operationId": "ContactService_AuthIntegration",
         "responses": {
           "200": {
@@ -382,68 +291,6 @@
     }
   },
   "definitions": {
-    "AmoContactCustom_fields": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "name": {
-          "type": "string"
-        },
-        "values": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/AmoContactValues"
-          }
-        },
-        "code": {
-          "type": "string"
-        }
-      }
-    },
-    "AmoContactValues": {
-      "type": "object",
-      "properties": {
-        "value": {
-          "type": "string"
-        },
-        "enum": {
-          "type": "string"
-        },
-        "code": {
-          "type": "string"
-        }
-      }
-    },
-    "ContactActionsHookRequestEmbedded": {
-      "type": "object",
-      "properties": {
-        "add": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/contact_serviceAmoContact"
-          }
-        },
-        "update": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/contact_serviceAmoContact"
-          }
-        },
-        "delete": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/contact_serviceAmoContact"
-          }
-        }
-      }
-    },
     "contact_serviceAccount": {
       "type": "object",
       "properties": {
@@ -490,71 +337,14 @@
         }
       }
     },
-    "contact_serviceAmoContact": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "name": {
-          "type": "string"
-        },
-        "responsible_user_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "date_create": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "last_modified": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "created_user_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "modified_user_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "company_name": {
-          "type": "string"
-        },
-        "linked_company_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "account_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "custom_fields": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/AmoContactCustom_fields"
-          }
-        },
-        "created_at": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "updated_at": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "type": {
-          "type": "string"
-        }
-      }
-    },
     "contact_serviceContact": {
       "type": "object",
       "properties": {
         "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "amo_id": {
           "type": "string",
           "format": "uint64"
         },

@@ -9,5 +9,5 @@ type AmoCRMError struct {
 }
 
 func (c AmoCRMError) Error() string {
-	return c.Hint
+	return c.Title
 }
