@@ -32,12 +32,15 @@ func (c Client) GetLists(ctx context.Context, key string) (GetListsResponse, err
 		return GetListsResponse{}, err
 	}
 
-	sResp := &GetListsResponse{}
-	if err := json.Unmarshal(data, sResp); err != nil {
+	sResp := GetListsResponse{}
+
+	if err := json.Unmarshal(data, &sResp); err != nil {
 		return GetListsResponse{}, err
 	}
-	if len(sResp.Result) == 0 {
-		return GetListsResponse{}, sResp
+
+	if sResp.Result == nil {
+		return GetListsResponse{}, &sResp
 	}
-	return *sResp, nil
+
+	return sResp, nil
 }

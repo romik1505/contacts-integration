@@ -5,18 +5,19 @@ import (
 	"flag"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	contact_service "week3_docker/internal/service/contact"
-
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"net"
 	"net/http"
+	"week3_docker/internal/handler"
+	contact_service "week3_docker/internal/service/contact"
 	contact "week3_docker/pkg/api/contact_service"
 )
 
@@ -26,12 +27,14 @@ var (
 )
 
 type Server struct {
-	cs *contact_service.Service
+	cs      contact_service.IService
+	handler *handler.Handler
 }
 
-func NewServer(cs *contact_service.Service) Server {
+func NewServer(cs *contact_service.Service, h *handler.Handler) Server {
 	return Server{
-		cs: cs,
+		cs:      cs,
+		handler: h,
 	}
 }
 
@@ -40,27 +43,39 @@ func (s Server) Run() {
 	go RunGRPCServer(ctx, s.cs)
 
 	mux := RunGateway(ctx)
-	mx := SwaggerMux(ctx)
-	mx.Handle("/", mux)
+	mux.HandlePath(http.MethodPost, "/api/contacts/sync", s.handler.ContactSync)
+	mux.HandlePath(http.MethodPost, "/api/account/{id}/contacts/hook", s.handler.ContactActionsHook)
+	mx := SwaggerMux(mux)
 
-	if err := http.ListenAndServe(*httpPort, mx); err != nil {
-		log.Fatal("error start server: %v", err)
+	withCors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowOriginFunc:  func(origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"ACCEPT", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}).Handler(mx)
+
+	if err := http.ListenAndServe(*httpPort, withCors); err != nil {
+		log.Fatalf("error start server: %v", err)
 	}
 }
 
-func SwaggerMux(ctx context.Context) *http.ServeMux {
-	mx := http.NewServeMux()
+func SwaggerMux(mx *runtime.ServeMux) *http.ServeMux {
+	httpMux := http.NewServeMux()
 
-	mx.HandleFunc("/swagger/docs.swagger.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/docs.swagger.json")
-	})
-	mx.Handle("/swagger/", httpSwagger.Handler(
-		httpSwagger.URL("docs.swagger.json"),
+	httpMux.Handle("/", mx)
+	httpMux.HandleFunc("/swagger/", httpSwagger.Handler(
+		httpSwagger.URL("/docs/docs.swagger.json"),
 	))
-	return mx
+
+	fileServer := http.FileServer(http.Dir("docs"))
+	httpMux.Handle("/docs/", http.StripPrefix("/docs/", fileServer))
+	return httpMux
 }
 
-func RunGRPCServer(ctx context.Context, cs *contact_service.Service) {
+func RunGRPCServer(ctx context.Context, cs contact_service.IService) {
 	lis, err := net.Listen("tcp", *grpcPort)
 	if err != nil {
 		log.Fatalf("error start grpc server %v", err)
@@ -84,7 +99,7 @@ func RunGRPCServer(ctx context.Context, cs *contact_service.Service) {
 }
 
 func RunGateway(ctx context.Context) *runtime.ServeMux {
-	mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+	m := &runtime.HTTPBodyMarshaler{
 		Marshaler: &runtime.JSONPb{
 			MarshalOptions: protojson.MarshalOptions{
 				UseProtoNames:   true,
@@ -93,10 +108,13 @@ func RunGateway(ctx context.Context) *runtime.ServeMux {
 			UnmarshalOptions: protojson.UnmarshalOptions{
 				DiscardUnknown: true,
 			},
-		},
-	}))
+		}}
+
+	mx := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, m),
+	)
 
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	contact.RegisterContactServiceHandlerFromEndpoint(ctx, mux, *grpcPort, opts)
-	return mux
+	contact.RegisterContactServiceHandlerFromEndpoint(ctx, mx, *grpcPort, opts)
+	return mx
 }

@@ -8,28 +8,64 @@ import (
 	"io/ioutil"
 	"net/http"
 	"week3_docker/internal/config"
-	"week3_docker/internal/model"
 )
 
 const (
-	subscribeHookUriMask = "https://%s.amocrm.ru/api/v4/webhooks"
+	subscribeHookUriMask = "https://%s/api/v4/webhooks"
 	hookDestinationMask  = "%s/api/account/%d/contacts/hook"
 )
 
-func (c Client) WebHookContactsSubscribe(ctx context.Context, account model.Account, integration model.Integration) (model.WebhookSubscribeResponse, error) {
-	if account.AccessToken == "" {
-		return model.WebhookSubscribeResponse{}, fmt.Errorf("access for account id=%d not set", account.ID)
+type WebhookSubscribeRequest struct {
+	Destination string   `json:"destination,omitempty"`
+	Settings    []string `json:"settings,omitempty"`
+	Sort        int      `json:"sort,omitempty"`
+}
+
+type WebhookSubscribeResponse struct {
+	ID          int            `json:"id"`
+	Destination string         `json:"destination"`
+	CreatedAt   int            `json:"created_at"`
+	UpdatedAt   int            `json:"updated_at"`
+	AccountID   int            `json:"account_id"`
+	CreatedBy   int            `json:"created_by"`
+	Sort        int            `json:"sort"`
+	Disabled    bool           `json:"disabled"`
+	Settings    map[string]int `json:"settings"`
+}
+
+type WebhookSubscribeError struct {
+	ValidationErrors []struct {
+		RequestID string `json:"request_id"`
+		Errors    []struct {
+			Code   string `json:"code"`
+			Path   string `json:"path"`
+			Detail string `json:"detail"`
+		} `json:"errors"`
+	} `json:"validation-errors"`
+	Title  string `json:"title"`
+	Type   string `json:"type"`
+	Status int    `json:"status"`
+	Detail string `json:"detail"`
+}
+
+func (w WebhookSubscribeError) Error() string {
+	return w.Title
+}
+
+func (c Client) WebHookContactsSubscribe(ctx context.Context, request AccountRequest, accountID uint64) (WebhookSubscribeResponse, error) {
+	if request.AccessToken == "" {
+		return WebhookSubscribeResponse{}, fmt.Errorf("access for account id=%d not set", accountID)
 	}
-	if account.Subdomain == "" {
-		return model.WebhookSubscribeResponse{}, fmt.Errorf("subdomain for account id=%d not set", account.ID)
+	if request.Subdomain == "" {
+		return WebhookSubscribeResponse{}, fmt.Errorf("subdomain for account id=%d not set", accountID)
 	}
 
-	conString := fmt.Sprintf(subscribeHookUriMask, account.Subdomain)
+	conString := fmt.Sprintf(subscribeHookUriMask, request.Subdomain)
 	var buf bytes.Buffer
 
-	uriDestinationHook := fmt.Sprintf(hookDestinationMask, config.Config.HostUrl, account.ID)
-	err := json.NewEncoder(&buf).Encode(model.WebhookSubscribeRequest{
-		Destinations: uriDestinationHook,
+	uriDestinationHook := fmt.Sprintf(hookDestinationMask, config.Config.HostUrl, accountID)
+	err := json.NewEncoder(&buf).Encode(WebhookSubscribeRequest{
+		Destination: uriDestinationHook,
 		Settings: []string{
 			"restore_contact",
 			"add_contact",
@@ -39,27 +75,33 @@ func (c Client) WebHookContactsSubscribe(ctx context.Context, account model.Acco
 		Sort: 10,
 	})
 	if err != nil {
-		return model.WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
+		return WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
 	}
 	req, err := http.NewRequest(http.MethodPost, conString, &buf)
 	if err != nil {
-		return model.WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
+		return WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+account.AccessToken)
+	req.Header.Add("Authorization", "Bearer "+request.AccessToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return model.WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
+		return WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
 	}
 
 	respRaw, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return model.WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
+		return WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
 	}
 
-	var modelResp model.WebhookSubscribeResponse
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		var err WebhookSubscribeError
+		json.Unmarshal(respRaw, &err)
+		return WebhookSubscribeResponse{}, &err
+	}
+
+	var modelResp WebhookSubscribeResponse
 	if err := json.Unmarshal(respRaw, &modelResp); err != nil {
-		return model.WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
+		return WebhookSubscribeResponse{}, fmt.Errorf("WebHookContactsSubscribe: %v", err)
 	}
 
 	return modelResp, nil

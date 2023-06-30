@@ -10,7 +10,7 @@ type IAccountRepository interface {
 	CreateAccount(ctx context.Context, account *model.Account) error
 	UpdateAccount(ctx context.Context, account *model.Account) error
 	DeleteAccount(ctx context.Context, id uint64) error
-	ListAccounts(ctx context.Context, filter model.ListAccountFilter) ([]model.Account, error)
+	ListAccounts(ctx context.Context, filter ListAccountFilter) ([]model.Account, error)
 	GetAccount(ctx context.Context, id uint64) (model.Account, error)
 }
 

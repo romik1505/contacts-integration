@@ -3,7 +3,6 @@ package amo
 import (
 	"context"
 	"net/http"
-	"week3_docker/internal/model"
 )
 
 type Client struct {
@@ -16,8 +15,10 @@ const (
 )
 
 type IAmoClient interface {
-	ListContacts(ctx context.Context, account model.Account, params model.ContactQueryParams) (model.ContactResponse, error)
-	AccessToken(ctx context.Context, account model.Account, request model.AuthRequest) (model.AuthTokenPair, error)
+	ListContacts(ctx context.Context, request AccountRequest, params ContactQueryParams) (ContactResponse, error)
+	AccessToken(ctx context.Context, subdomain string, req AuthRequest) (AuthTokenPair, error)
+	Account(ctx context.Context, req AccountRequest) (AccountResponse, error)
+	WebHookContactsSubscribe(ctx context.Context, request AccountRequest, accountID uint64) (WebhookSubscribeResponse, error)
 }
 
 func NewAmoClient() *Client {

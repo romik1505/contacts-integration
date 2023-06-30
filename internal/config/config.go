@@ -9,9 +9,10 @@ import (
 )
 
 type ConfigFile struct {
-	DBConfig     DBConfig
-	APISecretKey string
-	HostUrl      string
+	DBConfig         DBConfig
+	APISecretKey     string
+	HostUrl          string
+	BeanstalkdConfig BeanstalkdConfig
 }
 
 type DBConfig struct {
@@ -33,6 +34,15 @@ func (d DBConfig) ConnectionString() string {
 	))
 }
 
+type BeanstalkdConfig struct {
+	Host string
+	Port string
+}
+
+func (b BeanstalkdConfig) ConnectionString() string {
+	return fmt.Sprintf("%s:%s", b.Host, b.Port)
+}
+
 var (
 	Config   ConfigFile
 	envLevel string
@@ -52,10 +62,6 @@ func init() {
 }
 
 func NewDBConfig() (DBConfig, error) {
-	if err := godotenv.Load(".env"); err != nil {
-		log.Printf(".env not found: %v\n", err)
-	}
-
 	DBHost, err := GetEnv("DB_HOST")
 	if err != nil {
 		return DBConfig{}, err
@@ -96,8 +102,39 @@ func NewDBConfig() (DBConfig, error) {
 	}, nil
 }
 
+func NewBeanstalkdConfig() (BeanstalkdConfig, error) {
+	host, err := GetEnv("BEANSTALKD_HOST")
+	if err != nil {
+		return BeanstalkdConfig{}, err
+	}
+	port, err := GetEnv("BEANSTALKD_PORT")
+	if err != nil {
+		return BeanstalkdConfig{}, err
+	}
+	return BeanstalkdConfig{
+		Host: host,
+		Port: port,
+	}, nil
+}
+
 func NewConfig() (ConfigFile, error) {
+	var envFile string
+	envFile, ok := os.LookupEnv("ENV_FILE")
+	if !ok {
+		envFile = ".env"
+	}
+	log.Printf("env file: %s", envFile)
+
+	if err := godotenv.Load(envFile); err != nil {
+		log.Printf(".env not found: %v\n", err)
+	}
+
 	dbConfig, err := NewDBConfig()
+	if err != nil {
+		return ConfigFile{}, err
+	}
+
+	bsConfig, err := NewBeanstalkdConfig()
 	if err != nil {
 		return ConfigFile{}, err
 	}
@@ -113,9 +150,10 @@ func NewConfig() (ConfigFile, error) {
 	}
 
 	return ConfigFile{
-		DBConfig:     dbConfig,
-		APISecretKey: apiSecret,
-		HostUrl:      hostUrl,
+		DBConfig:         dbConfig,
+		APISecretKey:     apiSecret,
+		HostUrl:          hostUrl,
+		BeanstalkdConfig: bsConfig,
 	}, nil
 }
 

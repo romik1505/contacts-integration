@@ -4,6 +4,8 @@ import (
 	"log"
 	"week3_docker/internal/client/amo"
 	"week3_docker/internal/client/unisender"
+	"week3_docker/internal/handler"
+	"week3_docker/internal/queue"
 	"week3_docker/internal/repository/account"
 	contact_repository "week3_docker/internal/repository/contact"
 	"week3_docker/internal/repository/integration"
@@ -23,9 +25,11 @@ func main() {
 	ir := integration.NewRepository(st)
 	amo := amo.NewAmoClient()
 	uni := unisender.NewClient()
-	cs := contact.NewService(amo, uni, ar, cr, ir)
-	go cs.AutoRefreshTokens()
+	q := queue.NewQueue()
+	cs := contact.NewService(amo, uni, ar, cr, ir, q)
+	h := handler.NewHandler(cs)
+	cs.Start()
 
-	s := server.NewServer(cs)
+	s := server.NewServer(cs, h)
 	s.Run()
 }

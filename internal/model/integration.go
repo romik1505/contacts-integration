@@ -13,9 +13,3 @@ type Integration struct {
 	CreatedAt uint64 `gorm:"autoCreateTime"`
 	UpdatedAt uint64 `gorm:"autoUpdateTime"`
 }
-
-type ListIntegrationFilter struct {
-	AccountID int
-	Page      int
-	Limit     int
-}

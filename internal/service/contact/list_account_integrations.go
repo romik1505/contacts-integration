@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"week3_docker/internal/mapper"
-	"week3_docker/internal/model"
+	"week3_docker/internal/repository/integration"
 	contact "week3_docker/pkg/api/contact_service"
 )
 
 func (s Service) ListAccountIntegrations(ctx context.Context, req *contact.ListAccountIntegrationsRequest) (*contact.ListAccountIntegrationsResponse, error) {
-	integrations, err := s.ir.ListIntegration(ctx, model.ListIntegrationFilter{
+	integrations, err := s.ir.ListIntegration(ctx, integration.ListIntegrationFilter{
 		AccountID: int(req.GetId()),
 		Page:      int(req.GetPage()),
 		Limit:     int(req.GetLimit()),
