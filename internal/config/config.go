@@ -10,6 +10,7 @@ import (
 )
 
 type ConfigFile struct {
+	Environment      string
 	DBConfig         DBConfig
 	APISecretKey     string
 	HostUrl          string
@@ -53,11 +54,6 @@ var once sync.Once
 
 func init() {
 	once.Do(func() {
-		envLevel = os.Getenv("ENVIRONMENT")
-		if envLevel == "local" {
-			log.Printf("CONFIG env level = %s\n", envLevel)
-		}
-
 		conf, err := NewConfig()
 		if err != nil {
 			log.Fatalf("config initiation error: %v", err)
@@ -123,6 +119,11 @@ func NewBeanstalkdConfig() (BeanstalkdConfig, error) {
 }
 
 func NewConfig() (ConfigFile, error) {
+	envLevel = os.Getenv("ENVIRONMENT")
+	if envLevel == "local" {
+		log.Printf("CONFIG env level = %s\n", envLevel)
+	}
+
 	var envFile string
 	envFile, ok := os.LookupEnv("ENV_FILE")
 	if !ok {
@@ -155,6 +156,7 @@ func NewConfig() (ConfigFile, error) {
 	}
 
 	return ConfigFile{
+		Environment:      envLevel,
 		DBConfig:         dbConfig,
 		APISecretKey:     apiSecret,
 		HostUrl:          hostUrl,
@@ -163,7 +165,7 @@ func NewConfig() (ConfigFile, error) {
 }
 
 func GetEnv(key string) (string, error) {
-	if envLevel == "local" {
+	if envLevel == "local" || envLevel == "test" {
 		key = "TEST_" + key
 	}
 	value, ok := os.LookupEnv(key)

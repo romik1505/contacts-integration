@@ -9,8 +9,8 @@ import (
 )
 
 func TestRepository_InsertContacts(t *testing.T) {
-	st, err := store.NewStore()
-	require.Nil(t, err)
+	st := store.NewStore()
+
 	rep := NewRepository(st)
 
 	type wantStruct struct {
