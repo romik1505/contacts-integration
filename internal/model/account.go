@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"gorm.io/gorm"
 )
 
@@ -11,10 +12,10 @@ type Account struct {
 
 	ID              uint64
 	Subdomain       string `gorm:"size:255"`
-	AuthCode        string
-	AccessToken     string
-	RefreshToken    string
-	Expires         uint64
+	AuthCode        sql.NullString
+	AccessToken     sql.NullString
+	RefreshToken    sql.NullString
+	Expires         sql.NullInt64
 	UnisenderKey    string `gorm:"size:255"`
 	UnisenderListID uint64
 

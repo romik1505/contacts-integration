@@ -56,6 +56,7 @@ type Log struct {
 	Message string `json:"message,omitempty"`
 }
 
+// LogsToMap map id->reason
 func LogsToMap(res *Result) map[int]string {
 	if res == nil {
 		return nil

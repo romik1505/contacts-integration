@@ -32,7 +32,7 @@ func (h Handler) ContactActionsHook(w http.ResponseWriter, r *http.Request, keys
 	}
 
 	if err := json.Unmarshal([]byte(jsonS), &req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

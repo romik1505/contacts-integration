@@ -8,6 +8,7 @@ import (
 	"week3_docker/internal/client/amo"
 	"week3_docker/internal/config"
 	account_repo "week3_docker/internal/repository/account"
+	"week3_docker/internal/store"
 )
 
 func (cs Service) AutoRefreshTokens(ctx context.Context) {
@@ -45,16 +46,16 @@ func (cs Service) refreshTokens(ctx context.Context) error {
 			ClientID:     account.Integrations[0].OuterID,
 			ClientSecret: config.Config.APISecretKey,
 			GrantType:    amo.GrantTypeRefresh,
-			RefreshToken: account.RefreshToken,
+			RefreshToken: account.RefreshToken.String,
 			RedirectURI:  fmt.Sprintf(redirectUrlMask, config.Config.HostUrl),
 		})
 		if err != nil {
 			log.Printf("RefreshTokens: error refresh token for account %d: %v", account.ID, err.Error())
 			continue
 		}
-		account.AccessToken = newTokens.AccessToken
-		account.RefreshToken = newTokens.RefreshToken
-		account.Expires = uint64(time.Now().Unix() + newTokens.ExpiresIn)
+		account.AccessToken = store.NewNullString(newTokens.AccessToken)
+		account.RefreshToken = store.NewNullString(newTokens.RefreshToken)
+		account.Expires = store.NewNullInt64(time.Now().Unix() + newTokens.ExpiresIn)
 		err = cs.ar.UpdateAccount(ctx, &account)
 		if err != nil {
 			log.Printf("RefreshTokens: error update tokens for account %d: %v", account.ID, err)

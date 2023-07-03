@@ -1,16 +1,36 @@
 CURRENT_DIR = $(shell pwd)
 
-run:
-	go run ./cmd/server/main.go
-
+# generate proto-> grpc, http server
 generate:
 	buf generate
 
-local:
+# local run
+run:
+	go mod tidy
+	google-chrome http://localhost:8080/swagger/index.html & \
 	ENVIRONMENT=local go run ./cmd/server/main.go
 
 tests:
 	ENVIRONMENT=local ENV_FILE=$(CURRENT_DIR)/.env go test -v ./...
+
+# checkports for docker
+ports:
+	./scripts/checkport.sh 8080 3307 9090 11300
+
+wire:
+	wire ./internal/server
+	wire ./internal/worker
+
+build:
+	go build -o ./bin/main ./cmd/server/main.go
+	go build -o ./bin/cli ./cmd/cli/main.go
+	go build -o ./bin/worker ./cmd/worker/main.go
+
+docker:
+	./scripts/checkport.sh 8080 3307 9090 11300
+	docker-compose build --no-cache
+	google-chrome http://localhost:8080/swagger/index.html & \
+	docker compose up
 
 mocks:
 	mockgen -source=./pkg/api/contact_service/contact_service_grpc.pb.go -destination=./pkg/mocks/grpc/contact_service/mock_service.go

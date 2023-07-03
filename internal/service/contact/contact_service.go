@@ -15,14 +15,16 @@ import (
 )
 
 type Service struct {
+	//Clients
 	amoClient amo.IAmoClient
 	uniClient unisender.IUnisenderClient
-	ar        account.IAccountRepository
-	cr        contact_repository.IRepository
-	ir        integration.IRepository
-
+	//Repositories
+	ar account.IAccountRepository
+	cr contact_repository.IRepository
+	ir integration.IRepository
+	//Queue
 	queue *queue.Queue
-
+	//GRPC server
 	contact.UnimplementedContactServiceServer
 }
 
@@ -58,7 +60,7 @@ func NewService(
 	ir integration.IRepository,
 	q *queue.Queue,
 ) *Service {
-	return &Service{
+	s := &Service{
 		amoClient: amo,
 		uniClient: uni,
 		ar:        ar,
@@ -66,28 +68,9 @@ func NewService(
 		ir:        ir,
 		queue:     q,
 	}
-}
-
-type Worker struct {
-	ID      int
-	Queue   *queue.Queue
-	Service IService
-}
-
-func (s Service) Start() {
-	workers := make([]Worker, 2)
-	for i := range workers {
-		workers[i] = Worker{
-			ID:      i + 1,
-			Queue:   s.queue,
-			Service: s,
-		}
-	}
-
-	for _, worker := range workers {
-		go worker.DoTasks(context.Background())
-	}
 
 	go s.AutoRefreshTokens(context.Background())
-	//go s.InitSubscribeHook(context.Background())
+	go s.InitSubscribeHook(context.Background())
+
+	return s
 }

@@ -43,7 +43,7 @@ func (s Service) DoPrimaryContactSync(ctx context.Context, req *proto.ContactSyn
 
 	resp, err := s.amoClient.WebHookContactsSubscribe(ctx, amo.AccountRequest{
 		Subdomain:   account.Subdomain,
-		AccessToken: account.AccessToken,
+		AccessToken: account.AccessToken.String,
 	}, account.ID)
 	if err != nil {
 		return err
@@ -90,13 +90,13 @@ func (s Service) DoPrimaryContactSync(ctx context.Context, req *proto.ContactSyn
 	for {
 		contacts, err := s.amoClient.ListContacts(context.Background(), amo.AccountRequest{
 			Subdomain:   account.Subdomain,
-			AccessToken: account.AccessToken,
+			AccessToken: account.AccessToken.String,
 		}, params)
 		if err != nil {
 			break
 		}
 
-		cs := mapper.ConvertAmoContactsToModel(contacts.Embedded.Contacts, "init")
+		cs := mapper.ConvertAmoContactsToModel(contacts.Embedded.Contacts, model.ContactTypePrimarySync)
 		if len(cs) == 0 {
 			params.Page++
 			continue
@@ -127,7 +127,7 @@ func (s Service) DoPrimaryContactSync(ctx context.Context, req *proto.ContactSyn
 			AccountID: account.ID,
 			Page:      page,
 			Limit:     100,
-			Type:      "init",
+			Type:      model.ContactTypePrimarySync,
 			Sync:      &b,
 		})
 		if err != nil || len(contacts) == 0 {

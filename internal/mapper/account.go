@@ -17,7 +17,7 @@ func ConvertAccount(inp model.Account) *contact.Account {
 	return &contact.Account{
 		Id:                 inp.ID,
 		Subdomain:          inp.Subdomain,
-		AmoAuth:            inp.AuthCode != "",
+		AmoAuth:            inp.AccessToken.String != "",
 		UnisenderConnected: inp.UnisenderKey != "",
 		CreatedAt:          inp.CreatedAt,
 		UpdatedAt:          inp.UpdatedAt,

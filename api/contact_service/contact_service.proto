@@ -28,7 +28,7 @@ service ContactService {
     option(google.api.http) = { get: "/api/account/{id}/integrations" };
   }
 
-//  // Информация об аккаунте
+  // Информация об аккаунте
   rpc GetAccount(GetAccountRequest) returns (GetAccountResponse) {
     option(google.api.http) = { get: "/api/account/{id}" };
   }
@@ -41,8 +41,8 @@ service ContactService {
 
 message AuthIntegrationRequest {
   string code = 1; // код авторизации
-  string state = 2;
-  string referer = 3;
+  string state = 2; // передается от виджета
+  string referer = 3; // поддомен vasya.amocrm.ru
   int32 platform = 4;
   string client_id = 5; // id интеграции
 }
@@ -67,8 +67,9 @@ message Contact {
   string email = 5;
   string type = 6;
   bool sync = 7;
-  uint64 created_at = 8;
-  uint64 updated_at = 9;
+  string reason_out_sync = 8;
+  uint64 created_at = 9;
+  uint64 updated_at = 10;
 }
 
 message ListAccountsRequest {

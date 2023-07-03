@@ -55,15 +55,16 @@ func ConvertContacts(contacts []model.Contact) []*contact.Contact {
 
 func ConvertContact(c model.Contact) *contact.Contact {
 	return &contact.Contact{
-		Id:        c.ID,
-		AmoId:     c.AmoID,
-		AccountId: c.AccountID,
-		Name:      c.Name,
-		Email:     c.Email,
-		Type:      c.Type,
-		Sync:      c.Sync,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
+		Id:            c.ID,
+		AmoId:         c.AmoID,
+		AccountId:     c.AccountID,
+		Name:          c.Name,
+		Email:         c.Email,
+		Type:          c.Type,
+		Sync:          c.Sync,
+		ReasonOutSync: c.ReasonOutSync,
+		CreatedAt:     c.CreatedAt,
+		UpdatedAt:     c.UpdatedAt,
 	}
 }
 
@@ -81,9 +82,7 @@ func ConvertAmoContactsToModel(cs []amo.Contact, types string) []model.Contact {
 						Type:      types,
 						Sync:      false,
 					}
-					if contact.Valid() {
-						res = append(res, contact)
-					}
+					res = append(res, contact)
 				}
 			}
 		}
