@@ -11,7 +11,7 @@ run:
 	ENVIRONMENT=local go run ./cmd/server/main.go
 
 tests:
-	ENVIRONMENT=local ENV_FILE=$(CURRENT_DIR)/.env go test -v ./...
+	ENVIRONMENT=test ENV_FILE=$(CURRENT_DIR)/.env go test -v ./...
 
 # checkports for docker
 ports:

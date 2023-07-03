@@ -27,9 +27,7 @@ func ConvertAmoContactsWithIDs(inp []schemas.Contact, accountID uint64, types st
 						Type:      types,
 						Sync:      false,
 					}
-					if cont.Valid() {
-						res = append(res, cont)
-					}
+					res = append(res, cont)
 				}
 			}
 		}

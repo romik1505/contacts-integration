@@ -5,6 +5,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"week3_docker/internal/client/amo"
 	"week3_docker/internal/client/unisender"
+	"week3_docker/internal/config"
 	"week3_docker/internal/model"
 	"week3_docker/internal/queue"
 	"week3_docker/internal/repository/account"
@@ -69,8 +70,10 @@ func NewService(
 		queue:     q,
 	}
 
-	go s.AutoRefreshTokens(context.Background())
-	go s.InitSubscribeHook(context.Background())
+	if config.Config.Environment != "test" {
+		go s.AutoRefreshTokens(context.Background())
+		go s.InitSubscribeHook(context.Background())
+	}
 
 	return s
 }
