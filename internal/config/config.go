@@ -6,6 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"sync"
 )
 
 type ConfigFile struct {
@@ -48,17 +49,21 @@ var (
 	envLevel string
 )
 
-func init() {
-	envLevel = os.Getenv("ENVIRONMENT")
-	if envLevel == "local" {
-		log.Printf("CONFIG env level = %s\n", envLevel)
-	}
+var once sync.Once
 
-	conf, err := NewConfig()
-	if err != nil {
-		log.Fatalf("config initiation error: %v", err)
-	}
-	Config = conf
+func init() {
+	once.Do(func() {
+		envLevel = os.Getenv("ENVIRONMENT")
+		if envLevel == "local" {
+			log.Printf("CONFIG env level = %s\n", envLevel)
+		}
+
+		conf, err := NewConfig()
+		if err != nil {
+			log.Fatalf("config initiation error: %v", err)
+		}
+		Config = conf
+	})
 }
 
 func NewDBConfig() (DBConfig, error) {
@@ -126,7 +131,7 @@ func NewConfig() (ConfigFile, error) {
 	log.Printf("env file: %s", envFile)
 
 	if err := godotenv.Load(envFile); err != nil {
-		log.Printf(".env not found: %v\n", err)
+		log.Printf("%s not found: %v\n", envFile, err)
 	}
 
 	dbConfig, err := NewDBConfig()

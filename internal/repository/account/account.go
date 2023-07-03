@@ -77,14 +77,14 @@ func applyListAccountFilter(q *gorm.DB, filter ListAccountFilter) *gorm.DB {
 	q = q.Limit(filter.Limit).Offset((filter.Page - 1) * filter.Limit)
 
 	if filter.NeedRefresh {
-		q = q.Where("access_token IS NOT NULL AND expires <= ?", time.Now().Add(time.Hour*5).Unix()).Order("expires")
+		q = q.Where("access_token <> \"\" AND expires <= ?", time.Now().Add(time.Hour*5).Unix()).Order("expires")
 	}
 
 	if filter.AmoAuthorized != nil {
 		if *filter.AmoAuthorized {
-			q = q.Where("access_token IS NOT NULL AND expires > ?", time.Now().Unix()).Order("id")
+			q = q.Where("access_token <> \"\" AND expires > ?", time.Now().Unix()).Order("id")
 		} else {
-			q = q.Where("access_token IS NULL OR expires <= ?", time.Now().Unix())
+			q = q.Where("access_token = \"\" OR expires <= ?", time.Now().Unix())
 		}
 	}
 

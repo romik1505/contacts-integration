@@ -2,11 +2,10 @@ package contact
 
 import (
 	"context"
-	"errors"
-	"gorm.io/gorm"
 	"log"
 	"week3_docker/internal/client/amo"
 	account2 "week3_docker/internal/repository/account"
+	"week3_docker/internal/store"
 )
 
 func (cs Service) InitSubscribeHook(ctx context.Context) {
@@ -19,16 +18,28 @@ func (cs Service) InitSubscribeHook(ctx context.Context) {
 			Page:          page,
 			AmoAuthorized: &auth,
 		})
-		if errors.Is(err, gorm.ErrRecordNotFound) || len(accounts) == 0 {
+		if err != nil || len(accounts) == 0 {
 			return
 		}
 		for _, account := range accounts {
 			resp, err := cs.amoClient.WebHookContactsSubscribe(ctx, amo.AccountRequest{
 				Subdomain:   account.Subdomain,
-				AccessToken: account.AccessToken,
+				AccessToken: account.AccessToken.String,
 			}, account.ID)
+
 			if err != nil {
 				log.Printf("Init Subscribe account=%d error: %v\n", account.ID, err)
+
+				amoErr, ok := err.(*amo.WebhookSubscribeError)
+				if ok && amoErr.Status == 401 {
+					account.AccessToken = store.NewNullString("")
+					account.RefreshToken = store.NewNullString("")
+					account.Expires = store.NewNullInt64(0)
+					if err := cs.ar.UpdateAccount(ctx, &account); err != nil {
+						log.Printf("InitSubscribeHook update: %v", err)
+					}
+				}
+
 				continue
 			}
 			log.Printf("Init Subscribe: account=%d subscribed=%s\n", account.ID, resp.Destination)

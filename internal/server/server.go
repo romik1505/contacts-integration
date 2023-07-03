@@ -31,7 +31,7 @@ type Server struct {
 	handler *handler.Handler
 }
 
-func NewServer(cs *contact_service.Service, h *handler.Handler) Server {
+func NewServer(cs contact_service.IService, h *handler.Handler) Server {
 	return Server{
 		cs:      cs,
 		handler: h,

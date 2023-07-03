@@ -22,7 +22,7 @@ const (
 func (q Queue) PushContactTask(ctx context.Context, task model.ContactActionsTask, taskType string) error {
 	err := task.Validate()
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("PushContactTask: %v", err)
 		return nil
 	}
 

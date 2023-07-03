@@ -18,7 +18,7 @@
   "paths": {
     "/api/account/{id}": {
       "get": {
-        "summary": "// Информация об аккаунте",
+        "summary": "Информация об аккаунте",
         "operationId": "ContactService_GetAccount",
         "responses": {
           "200": {
@@ -259,12 +259,14 @@
           },
           {
             "name": "state",
+            "description": "передается от виджета",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "referer",
+            "description": "поддомен vasya.amocrm.ru",
             "in": "query",
             "required": false,
             "type": "string"
@@ -363,6 +365,9 @@
         },
         "sync": {
           "type": "boolean"
+        },
+        "reason_out_sync": {
+          "type": "string"
         },
         "created_at": {
           "type": "string",

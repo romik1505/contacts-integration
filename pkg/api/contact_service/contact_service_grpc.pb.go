@@ -40,7 +40,7 @@ type ContactServiceClient interface {
 	ListAccounts(ctx context.Context, in *ListAccountsRequest, opts ...grpc.CallOption) (*ListAccountsResponse, error)
 	// Список интеграций аккаунта
 	ListAccountIntegrations(ctx context.Context, in *ListAccountIntegrationsRequest, opts ...grpc.CallOption) (*ListAccountIntegrationsResponse, error)
-	// // Информация об аккаунте
+	// Информация об аккаунте
 	GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*GetAccountResponse, error)
 	// Отписка учетной записи
 	UnsubAccount(ctx context.Context, in *UnsubAccountRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -120,7 +120,7 @@ type ContactServiceServer interface {
 	ListAccounts(context.Context, *ListAccountsRequest) (*ListAccountsResponse, error)
 	// Список интеграций аккаунта
 	ListAccountIntegrations(context.Context, *ListAccountIntegrationsRequest) (*ListAccountIntegrationsResponse, error)
-	// // Информация об аккаунте
+	// Информация об аккаунте
 	GetAccount(context.Context, *GetAccountRequest) (*GetAccountResponse, error)
 	// Отписка учетной записи
 	UnsubAccount(context.Context, *UnsubAccountRequest) (*emptypb.Empty, error)

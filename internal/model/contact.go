@@ -21,6 +21,13 @@ type Contact struct {
 	UpdatedAt uint64 `gorm:"autoUpdateTime"`
 }
 
+const (
+	ContactTypePrimarySync = "init"
+	ContactTypeAdd         = "add"
+	ContactTypeUpdate      = "update"
+	ContactTypeDelete      = "delete"
+)
+
 var emailReg = regexp.MustCompile("^[\\d\\w]+@[\\d\\w]+\\.[\\d\\w]+")
 
 func (c Contact) Valid() bool {

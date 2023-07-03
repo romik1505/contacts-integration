@@ -7,6 +7,7 @@ import (
 	"week3_docker/internal/client/amo"
 	"week3_docker/internal/config"
 	"week3_docker/internal/model"
+	"week3_docker/internal/store"
 )
 
 const (
@@ -21,7 +22,7 @@ func (cs Service) Login(ctx context.Context, account *model.Account) error {
 		ClientID:     account.Integrations[0].OuterID,
 		ClientSecret: config.Config.APISecretKey,
 		GrantType:    amo.GrandTypeAccess,
-		Code:         account.AuthCode,
+		Code:         account.AuthCode.String,
 		RedirectURI:  fmt.Sprintf(redirectUrlMask, config.Config.HostUrl),
 	}
 
@@ -30,13 +31,13 @@ func (cs Service) Login(ctx context.Context, account *model.Account) error {
 		return fmt.Errorf("error access token: %v", err)
 	}
 
-	account.AccessToken = resp.AccessToken
-	account.RefreshToken = resp.RefreshToken
-	account.Expires = uint64(time.Now().Unix() + resp.ExpiresIn)
+	account.AccessToken = store.NewNullString(resp.AccessToken)
+	account.RefreshToken = store.NewNullString(resp.RefreshToken)
+	account.Expires = store.NewNullInt64(time.Now().Unix() + resp.ExpiresIn)
 
 	amoAcc, err := cs.amoClient.Account(ctx, amo.AccountRequest{
 		Subdomain:   account.Subdomain,
-		AccessToken: account.AccessToken,
+		AccessToken: account.AccessToken.String,
 	})
 	if err != nil {
 		return err

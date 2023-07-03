@@ -6,8 +6,12 @@ services:
     ports:
       - 8080:8080
     restart: on-failure
+    environment:
+      - WORKER_FILE=/root/bin/worker
+      - ENV_FILE=/root/.env
     depends_on:
      - fullstack-mysql
+     - beanstalkd
     networks:
       - fullstack
 
@@ -28,21 +32,21 @@ services:
     networks:
       - fullstack
 
-#  phpmyadmin:
-#    image: phpmyadmin/phpmyadmin
-#    container_name: phpmyadmin_container
-#    depends_on:
-#      - fullstack-mysql
-#    environment:
-#      - PMA_HOST=fullstack-mysql
-#      - PMA_USER=${DB_USER}
-#      - PMA_PORT=${DB_PORT}
-#      - PMA_PASSWORD=${DB_PASSWORD}
-#    ports:
-#      - 9090:80
-#    restart: always
-#    networks:
-#      - fullstack
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_container
+    depends_on:
+      - fullstack-mysql
+    environment:
+      - PMA_HOST=fullstack-mysql
+      - PMA_USER=${DB_USER}
+      - PMA_PORT=${DB_PORT}
+      - PMA_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 9090:80
+    restart: always
+    networks:
+      - fullstack
 
   beanstalkd:
     container_name: ddev-beanstalkd
@@ -54,13 +58,15 @@ services:
       - 11300:11300
     labels:
       com.ddev.site-name: "sitename"
+    networks:
+      - fullstack
 #    volumes:
 #      - ".:/mnt/ddev_config"
 
 
-volumes:
-  api:
-  database_mysql:
+#volumes:
+#  api:
+#  database_mysql:
 
 # Networks to be created to facilitate communication between containers
 networks:

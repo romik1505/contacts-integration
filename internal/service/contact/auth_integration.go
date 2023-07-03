@@ -5,13 +5,14 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"week3_docker/internal/model"
+	"week3_docker/internal/store"
 	contact "week3_docker/pkg/api/contact_service"
 )
 
 func (cs Service) AuthIntegration(ctx context.Context, request *contact.AuthIntegrationRequest) (*emptypb.Empty, error) {
 	account := &model.Account{
 		Subdomain: request.GetReferer(),
-		AuthCode:  request.GetCode(),
+		AuthCode:  store.NewNullString(request.GetCode()),
 		Integrations: []model.Integration{
 			{
 				OuterID: request.GetClientId(),
