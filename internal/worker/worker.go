@@ -100,7 +100,7 @@ func (w WorkerPool) DoTasks(ctx context.Context, id int) {
 			}
 		}
 
-		log.Printf("Worker[%d]: finished task %s = %v", id, task.Type, time.Now().Sub(start))
+		log.Printf("Worker[%d]: finished task %s = %v", id, task.Type, time.Since(start))
 
 		if err := w.Queue.Con.Delete(taskID); err != nil {
 			log.Printf("Worker[%d] delete task: %v", id, err)

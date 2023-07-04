@@ -95,7 +95,9 @@ func (c Client) WebHookContactsSubscribe(ctx context.Context, request AccountReq
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		var err WebhookSubscribeError
-		json.Unmarshal(respRaw, &err)
+		if errUnmarshal := json.Unmarshal(respRaw, &err); errUnmarshal != nil {
+			return WebhookSubscribeResponse{}, errUnmarshal
+		}
 		return WebhookSubscribeResponse{}, &err
 	}
 

@@ -74,7 +74,7 @@ func applyListContactsFilter(q *gorm.DB, filter ListContactsFilter) *gorm.DB {
 	q = q.Limit(filter.Limit).Offset((filter.Page - 1) * filter.Limit)
 
 	s := make(map[string]interface{})
-	if filter.AccountID >= 0 {
+	if filter.AccountID != 0 {
 		s["account_id"] = filter.AccountID
 	}
 	if filter.Type != "" {

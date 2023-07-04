@@ -28,7 +28,7 @@ const (
 	ContactTypeDelete      = "delete"
 )
 
-var emailReg = regexp.MustCompile("^[\\d\\w]+@[\\d\\w]+\\.[\\d\\w]+")
+var emailReg = regexp.MustCompile(`^[\d\w]+@[\d\w]+\.[\d\w]+`)
 
 func (c Contact) Valid() bool {
 	return emailReg.MatchString(c.Email)

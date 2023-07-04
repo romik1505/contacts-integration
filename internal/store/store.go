@@ -35,7 +35,9 @@ func NewStore() Store {
 	}
 	log.Printf("db connection success")
 
-	db.AutoMigrate(&model.Account{}, &model.Contact{}, &model.Integration{})
+	if err = db.AutoMigrate(&model.Account{}, &model.Contact{}, &model.Integration{}); err != nil {
+		log.Fatalf("db migration failed: %v", err)
+	}
 
 	return Store{
 		DB: db,

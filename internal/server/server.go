@@ -43,8 +43,13 @@ func (s Server) Run() {
 	go RunGRPCServer(ctx, s.cs)
 
 	mux := RunGateway(ctx)
-	mux.HandlePath(http.MethodPost, "/api/contacts/sync", s.handler.ContactSync)
-	mux.HandlePath(http.MethodPost, "/api/account/{id}/contacts/hook", s.handler.ContactActionsHook)
+	if err := mux.HandlePath(http.MethodPost, "/api/contacts/sync", s.handler.ContactSync); err != nil {
+		log.Fatalf("HandlePath /api/contacts/sync: %v", err)
+	}
+
+	if err := mux.HandlePath(http.MethodPost, "/api/account/{id}/contacts/hook", s.handler.ContactActionsHook); err != nil {
+		log.Fatalf("HandlePath /api/account/{id}/contacts/hook%v", err)
+	}
 	mx := SwaggerMux(mux)
 
 	withCors := cors.New(cors.Options{
@@ -90,12 +95,15 @@ func RunGRPCServer(ctx context.Context, cs contact_service.IService) {
 		grpc_recovery.WithRecoveryHandler(customFunc),
 	}
 	gs := grpc.NewServer(
-		grpc_middleware.WithUnaryServerChain(
+		grpc_middleware.WithUnaryServerChain( //nolint
 			grpc_recovery.UnaryServerInterceptor(opts...),
 		),
 	)
 	contact.RegisterContactServiceServer(gs, cs)
-	gs.Serve(lis)
+	if err = gs.Serve(lis); err != nil {
+		log.Fatalf("RunGRPCServer Serve: %v", err)
+		return
+	}
 }
 
 func RunGateway(ctx context.Context) *runtime.ServeMux {
@@ -115,6 +123,8 @@ func RunGateway(ctx context.Context) *runtime.ServeMux {
 	)
 
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	contact.RegisterContactServiceHandlerFromEndpoint(ctx, mx, *grpcPort, opts)
+	if err := contact.RegisterContactServiceHandlerFromEndpoint(ctx, mx, *grpcPort, opts); err != nil {
+		log.Fatalf("RunGateway: RegisterContactServiceHandlerFromEndpoint: %v", err)
+	}
 	return mx
 }

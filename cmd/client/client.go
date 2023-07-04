@@ -26,7 +26,7 @@ func main() {
 		Id: *id,
 	}
 
-	con, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	con, err := grpc.Dial("localhost:50051", grpc.WithInsecure()) //nolint
 	if err != nil {
 		log.Fatal("connection grpc server error")
 	}

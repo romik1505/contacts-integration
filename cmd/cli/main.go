@@ -41,7 +41,7 @@ func RunServer(context *cli.Context) (*exec.Cmd, error) {
 		workerFile = "./bin/main"
 	}
 
-	cmd := exec.Command("./bin/main")
+	cmd := exec.Command(workerFile)
 
 	if err := cmd.Start(); err != nil {
 		return nil, err
@@ -157,10 +157,13 @@ func findAndKillProcess(path string, info os.FileInfo, err error) error {
 
 				proc, err := os.FindProcess(pid)
 				if err != nil {
-					log.Println(err)
+					log.Println(err.Error())
 				}
 
-				proc.Kill()
+				if err = proc.Kill(); err != nil {
+					log.Println(err.Error())
+				}
+
 				return io.EOF
 			}
 		}
@@ -170,5 +173,7 @@ func findAndKillProcess(path string, info os.FileInfo, err error) error {
 }
 
 func killWorkerProcess() {
-	filepath.Walk("/proc", findAndKillProcess)
+	if err := filepath.Walk("/proc", findAndKillProcess); err != nil {
+		log.Printf("error walking the path /proc")
+	}
 }
