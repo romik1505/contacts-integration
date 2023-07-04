@@ -53,6 +53,7 @@ func (s Service) DoPrimaryContactSync(ctx context.Context, req *proto.ContactSyn
 	listsResp, err := s.uniClient.GetLists(ctx, req.GetUnisenderKey())
 	if err != nil {
 		if err.Error() == "invalid_api_key" {
+			log.Printf("invalid_api_key for account %d", req.GetAccountId())
 			err := s.ar.UpdateAccount(ctx, &model.Account{ID: req.GetAccountId(), UnisenderKey: ""})
 			if err != nil {
 				return err

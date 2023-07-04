@@ -8,7 +8,7 @@ generate:
 run:
 	go mod tidy
 	google-chrome http://localhost:8080/swagger/index.html & \
-	ENVIRONMENT=local go run ./cmd/server/main.go
+	ENVIRONMENT=local ./scripts/starter.sh ./bin/cli run ./bin/main
 
 tests:
 	ENVIRONMENT=test ENV_FILE=$(CURRENT_DIR)/.env go test -v ./...
@@ -31,6 +31,9 @@ docker:
 	docker-compose build --no-cache
 	google-chrome http://localhost:8080/swagger/index.html & \
 	docker compose up
+
+lint:
+	golangci-lint run ./... --timeout 60s
 
 mocks:
 	mockgen -source=./pkg/api/contact_service/contact_service_grpc.pb.go -destination=./pkg/mocks/grpc/contact_service/mock_service.go
